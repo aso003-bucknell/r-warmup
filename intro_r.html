@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>R Warm-Up · BIOL 203</title>
+<!--
+  R Warm-Up | BIOL 203
+  A tiny first-contact R course. R runs entirely in the student's browser
+  (webR), so there is no server, no account, and nothing to install.
+  Host this one file on any web server (GitHub Pages, a Bucknell web folder).
+  Note: double-clicking the file on your own computer usually won't work;
+  browsers block webR's background worker on file:// pages.
+  Maintainer: Professor Orr, Bucknell University Biology
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bitter:wght@600&family=Source+Code+Pro:wght@400;600&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:#003865; --orange:#E87722; --ink:#1c2530; --muted:#5d6874;
+    --paper:#ffffff; --wash:#f4f6f8; --line:#dde3e9;
+    --editor:#0f2233; --editor-ink:#e8edf2; --comment:#f2a65a;
+    --good:#2e6b3f; --good-bg:#e8f3eb; --warn:#8a5a00; --warn-bg:#fff4df;
+    --bad:#b3261e; --bad-bg:#fdecea;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--wash); color:var(--ink);
+         font:16px/1.55 "Source Sans 3", system-ui, sans-serif; }
+  header { background:var(--navy); color:#fff; padding:18px 24px; }
+  header h1 { font:600 1.6rem/1.2 Bitter, Georgia, serif; margin:0; }
+  header h1 span { opacity:.65; font-weight:400; }
+  header p { margin:.35rem 0 0; opacity:.85; max-width:60rem; }
+  main { max-width:1200px; margin:0 auto; padding:20px 16px 48px; }
+  code, textarea, pre { font-family:"Source Code Pro", ui-monospace, monospace; }
+  p code, li code, .task code { background:#eef2f6; color:var(--navy);
+         padding:1px 5px; border-radius:3px; font-size:.92em; }
+
+  .steps { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px; }
+  .steps button { border:1px solid var(--line); background:var(--paper);
+         color:var(--ink); border-radius:999px; padding:5px 12px; cursor:pointer;
+         font:inherit; font-size:.9rem; }
+  .steps button.on { background:var(--navy); color:#fff; border-color:var(--navy); }
+  .steps button.done::before { content:"✓ "; color:var(--good); font-weight:600; }
+  .steps button.on.done::before { color:#9fe0b0; }
+
+  .grid { display:grid; grid-template-columns:minmax(0,2fr) minmax(0,1fr); gap:16px; }
+  @media (max-width:860px) { .grid { grid-template-columns:1fr; } }
+  .card { background:var(--paper); border:1px solid var(--line); border-radius:10px;
+          padding:18px 20px; }
+  .card h2 { font:600 1.25rem/1.3 Bitter, Georgia, serif; margin:0 0 .5rem; color:var(--navy); }
+  .card h3 { font-size:1rem; margin:0 0 .5rem; }
+  .task { border-left:4px solid var(--orange); background:#fff8f1;
+          padding:10px 14px; margin:12px 0 14px; border-radius:0 6px 6px 0; }
+  .task strong { color:var(--orange); }
+
+  textarea { width:100%; min-height:170px; resize:vertical; background:var(--editor);
+             color:var(--editor-ink); border:none; border-radius:10px; padding:14px 16px;
+             font-size:1rem; line-height:1.7; tab-size:2; }
+  textarea:focus { outline:2px solid var(--orange); }
+  .bar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:10px 0; }
+  .btn { font:inherit; border-radius:6px; padding:8px 18px; cursor:pointer;
+         border:1px solid var(--navy); background:var(--paper); color:var(--navy); }
+  .btn.primary { background:var(--navy); color:#fff; font-weight:600; font-size:1.05rem; }
+  .btn:disabled { opacity:.5; cursor:wait; }
+  .hint-key { color:var(--muted); font-size:.85rem; }
+
+  pre.console { background:#f6f6f4; border-left:4px solid var(--navy); margin:0;
+                padding:10px 14px; font-size:.9rem; white-space:pre-wrap;
+                min-height:3em; max-height:22rem; overflow:auto; }
+  .decode { margin-top:10px; padding:10px 14px; border-radius:6px; font-size:.95rem; }
+  .decode.err { background:var(--bad-bg); border-left:4px solid var(--bad); }
+  .decode.warn { background:var(--warn-bg); border-left:4px solid var(--warn); }
+  .check { margin-top:10px; padding:10px 14px; border-radius:6px; }
+  .check.pass { background:var(--good-bg); border-left:4px solid var(--good); }
+  .check.todo { background:var(--wash); border-left:4px solid var(--line); color:var(--muted); }
+
+  #memory { font-family:"Source Code Pro", monospace; font-size:.85rem; margin:0;
+            white-space:pre-wrap; }
+  #memory b { color:var(--navy); }
+  .muted { color:var(--muted); font-size:.9rem; }
+  #status { font-size:.9rem; color:var(--muted); }
+  #status.ready { color:var(--good); }
+</style>
+</head>
+<body>
+<header>
+  <h1>R Warm-Up <span>· BIOL 203</span></h1>
+  <p>This page runs real R, right inside your browser. Type code in the dark box,
+     click <strong>Run</strong>, and read what R says back. Nothing you do here can
+     break anything, so experiment!</p>
+</header>
+
+<main>
+  <nav class="steps" id="steps" aria-label="Lessons"></nav>
+
+  <div class="grid">
+    <section class="card">
+      <h2 id="title"></h2>
+      <div id="body"></div>
+      <div class="task" id="task"></div>
+
+      <label for="code" class="muted">Your code</label>
+      <textarea id="code" spellcheck="false" autocomplete="off" autocapitalize="off"></textarea>
+      <div class="bar">
+        <button class="btn primary" id="run" disabled>Run</button>
+        <span class="hint-key">or press Ctrl + Enter (⌘ + Enter on a Mac)</span>
+        <span style="flex:1"></span>
+        <button class="btn" id="restore" title="Put this lesson's starting code back">Restore starting code</button>
+      </div>
+
+      <h3>What R said</h3>
+      <pre class="console" id="console"><span class="muted">Your output will appear here.</span></pre>
+      <div id="decode"></div>
+      <div id="check"></div>
+    </section>
+
+    <aside class="card">
+      <h2>R's memory</h2>
+      <p class="muted">Everything you save with <code>&lt;-</code> lives here until you
+         close the page. (RStudio shows this same list in its Environment pane.)</p>
+      <pre id="memory">(starting…)</pre>
+      <div class="bar">
+        <button class="btn" id="reset" disabled>Empty R's memory</button>
+      </div>
+      <p id="status">Starting R in your browser. This takes a few seconds the first time…</p>
+    </aside>
+  </div>
+</main>
+
+<!-- R code that runs once at start-up. Kept here so it's easy to edit. -->
+<script type="text/plain" id="r-setup">
+# Practice data: made-up numbers, shaped like the class soil data
+.make_soil <- function() data.frame(
+  site          = rep(c("GC", "FF"), each = 6),
+  pH            = c(6.4, 6.8, 6.1, 6.6, 6.9, 6.3,  5.2, 5.6, 5.0, 5.4, 5.9, 5.3),
+  soil_vwc      = c(22, 25, 19, 27, 24, 21,  34, 31, 38, 29, 36, 33),
+  fungi_ugC     = c(41, 55, NA, 48, 60, 44,  88, 72, 95, 81, 77, 90),
+  temperature_c = c(16.2, 17.0, 15.8, 16.5, 17.3, 16.1,  13.4, 12.9, 14.1, 13.0, 13.6, 12.7)
+)
+
+.last <- NULL
+
+# Runs student code like the R console: echoes each line, prints visible
+# results, reports warnings and errors in R's own words. Returns a status
+# word ("OK", "NA" or "ERR") on the first line, then the console text.
+.run <- function(code) {
+  out <- character(0)
+  add <- function(x) out <<- c(out, x)
+  tidy_call <- function(cl) {
+    if (is.null(cl)) return("")
+    d <- deparse(cl)[1]
+    if (grepl("^(eval|withVisible|doTryCatch)\\(", d) || grepl("exprs\\[\\[", d)) "" else d
+  }
+  exprs <- tryCatch(parse(text = code, keep.source = TRUE), error = function(e) e)
+  if (inherits(exprs, "error")) {
+    msg <- strsplit(sub("^<text>:", "", conditionMessage(exprs)), "\n")[[1]]
+    ln <- sub("^(\\d+):.*", "\\1", msg[1])
+    what <- sub("^\\d+:\\d+: ", "", msg[1])
+    return(paste(c("ERR", paste0("Error on line ", ln, ": ", what), msg[-1]), collapse = "\n"))
+  }
+  srcs <- attr(exprs, "srcref")
+  status <- "OK"
+  last_na <- FALSE
+  for (i in seq_along(exprs)) {
+    add(paste0("> ", gsub("\n", "\n+ ", paste(as.character(srcs[[i]]), collapse = "\n"))))
+    ok <- withCallingHandlers(
+      tryCatch({
+        v <- NULL
+        printed <- utils::capture.output(v <- withVisible(eval(exprs[[i]], .GlobalEnv)))
+        if (length(printed)) add(printed)
+        if (v$visible) {
+          add(utils::capture.output(print(v$value)))
+          .last <<- v$value
+          last_na <- is.atomic(v$value) && length(v$value) == 1 && is.na(v$value)
+        }
+        TRUE
+      }, error = function(e) {
+        cl <- tidy_call(conditionCall(e))
+        add(paste0("Error", if (nzchar(cl)) paste0(" in ", cl, " "), ": ", conditionMessage(e)))
+        FALSE
+      }),
+      warning = function(w) {
+        cl <- tidy_call(conditionCall(w))
+        add(paste0("Warning message:\n", if (nzchar(cl)) paste0("In ", cl, " :\n  "),
+                   conditionMessage(w)))
+        invokeRestart("muffleWarning")
+      },
+      message = function(m) {
+        add(sub("\n$", "", conditionMessage(m)))
+        invokeRestart("muffleMessage")
+      })
+    if (!ok) { status <- "ERR"; break }
+  }
+  if (status == "OK" && last_na) status <- "NA"
+  paste(c(status, out), collapse = "\n")
+}
+
+# One line per saved object, for the memory panel
+.memory <- function() {
+  nm <- ls(.GlobalEnv)
+  if (!length(nm)) return("(empty)")
+  paste(vapply(nm, function(n) {
+    x <- get(n, envir = .GlobalEnv)
+    what <- if (is.data.frame(x)) {
+      sprintf("data frame: %d rows, %d columns", nrow(x), ncol(x))
+    } else if (is.function(x)) {
+      "a function"
+    } else if (is.atomic(x) && length(x) == 1) {
+      if (is.character(x)) paste0('"', x, '"') else format(x)
+    } else if (is.atomic(x)) {
+      sprintf("%s, %d values: %s%s", class(x)[1], length(x),
+              paste(format(utils::head(x, 4), trim = TRUE), collapse = " "),
+              if (length(x) > 4) " …" else "")
+    } else class(x)[1]
+    paste0("<b>", n, "</b>  ", what)
+  }, ""), collapse = "\n")
+}
+
+.reset <- function() {
+  rm(list = ls(.GlobalEnv), envir = .GlobalEnv)
+  .last <<- NULL
+  assign("soil", .make_soil(), envir = .GlobalEnv)
+  invisible(NULL)
+}
+
+.reset()
+</script>
+
+<script type="module">
+import { WebR } from "https://webr.r-wasm.org/v0.6.0/webr.mjs";
+
+// ---------------------------------------------------------------------
+// LESSONS. Each check is R code that returns "" when the task is done,
+// or a hint to show the student.
+// ---------------------------------------------------------------------
+const LESSONS = [
+{
+  title: "1. R is a calculator",
+  body: `<p>Type a math problem and click <strong>Run</strong>. R echoes your line after
+    a <code>&gt;</code> and prints the answer after <code>[1]</code>, which just means
+    "first value."</p>
+    <p>R follows the usual order of operations: multiplying and dividing happen
+    before adding and subtracting. Parentheses change the order.</p>`,
+  task: `<strong>Your task:</strong> Two soil samples had pH 6.2 and 7.4. Calculate
+    their average (add them, then divide by 2) and make it the last thing you run.`,
+  starter: `# Lines starting with # are comments. R skips them.\n3 + 4\n10 / 4\n`,
+  check: `if (isTRUE(all.equal(.last, 6.8))) "" else
+    if (isTRUE(all.equal(.last, 9.9))) "Close! You got 9.9 because R divided 7.4 by 2 before adding. Wrap the addition in parentheses." else
+    "Not yet. Your last answer should be the average of 6.2 and 7.4."`
+},
+{
+  title: "2. Save it with <-",
+  body: `<p><code>&lt;-</code> means "save the thing on the right under the name on the
+    left." Read <code>ph &lt;- 6.8</code> as "ph gets 6.8."</p>
+    <p>Saving prints nothing. Look at <strong>R's memory</strong> instead: your new
+    object appears there. To see what's inside, type its name by itself.</p>`,
+  task: `<strong>Your task:</strong> Save a soil pH of 6.8 as <code>ph</code>, then
+    type <code>ph</code> on its own line to print it. Then add a line with
+    <code>PH</code> and read what R says.`,
+  starter: `ph <- 6.8\n`,
+  check: `if (exists("ph") && isTRUE(all.equal(ph, 6.8))) "" else
+    if (exists("pH") || exists("PH")) "You saved something, but not under the exact name ph. To R, ph, pH and PH are three different names." else
+    "Not yet. Save 6.8 under the name ph using <-."`
+},
+{
+  title: "3. Vectors: many values, one name",
+  body: `<p><code>c()</code> combines values into a <em>vector</em>, a list of values
+    stored under one name. Separate the values with commas.</p>
+    <p>Most R functions work on a whole vector at once: <code>temps + 1</code>
+    adds 1 to every value, and <code>mean(temps)</code> averages them all.</p>`,
+  task: `<strong>Your task:</strong> Make a vector called <code>depths</code> with at
+    least 3 numbers (sampling depths in cm, say), then print its average with
+    <code>mean(depths)</code>.`,
+  starter: `temps <- c(12.1, 14.3, 13.8, 15.0)\ntemps\ntemps + 1\nmean(temps)\n`,
+  check: `if (!exists("depths")) "Not yet. Make a vector called depths with c()." else
+    if (!is.numeric(depths)) "depths should hold numbers. Did you put them in quotes? Quotes make text, not numbers." else
+    if (length(depths) < 3) "depths needs at least 3 numbers." else
+    if (!isTRUE(all.equal(.last, mean(depths)))) "depths looks good. Now print its average with mean(depths)." else ""`
+},
+{
+  title: "4. Functions and arguments",
+  body: `<p>A function is a verb. Its name comes first, then parentheses holding its
+    inputs, called <em>arguments</em>. Some arguments have names:
+    <code>round(3.14159, digits = 2)</code>.</p>
+    <p>Functions can go inside other functions. R works from the inside out:
+    in <code>round(mean(temps), digits = 1)</code>, it finds the mean first, then
+    rounds it.</p>
+    <p>Other handy ones: <code>length()</code>, <code>max()</code>,
+    <code>min()</code>, <code>sd()</code>. Type <code>?round</code> in a real R
+    session to read any function's help page.</p>`,
+  task: `<strong>Your task:</strong> Save the mean of <code>temps</code>, rounded to 1
+    decimal place, as <code>avg</code>.`,
+  starter: `length(temps)\nmax(temps)\nround(3.14159, digits = 2)\n`,
+  check: `if (!exists("temps")) "temps isn't in R's memory. Run temps <- c(12.1, 14.3, 13.8, 15.0) first (it's from lesson 3)." else
+    if (!exists("avg")) "Not yet. Save your answer under the name avg." else
+    if (!isTRUE(all.equal(avg, round(mean(temps), 1)))) paste0("avg is ", format(avg), ", but it should be the mean of temps rounded to 1 decimal place. Try putting mean(temps) inside round().") else ""`
+},
+{
+  title: "5. Data frames and $",
+  body: `<p>A <em>data frame</em> is a table: each row is a sample, each column is a
+    measurement. We've loaded practice data called <code>soil</code> (made-up
+    numbers, shaped like the class data). Find it in R's memory.</p>
+    <p><code>head(soil)</code> shows the top rows, <code>names(soil)</code> lists the
+    columns, and <code>$</code> pulls one column out as a vector:
+    <code>soil$pH</code>. Every vector trick from lesson 3 works on a column.</p>`,
+  task: `<strong>Your task:</strong> Save the average soil water content (the
+    <code>soil_vwc</code> column) as <code>mean_vwc</code>.`,
+  starter: `head(soil)\nnames(soil)\nsoil$pH\n`,
+  check: `if (!exists("mean_vwc")) "Not yet. Save your answer under the name mean_vwc." else
+    if (!isTRUE(all.equal(mean_vwc, mean(soil$soil_vwc)))) "Close. Take mean() of the soil_vwc column, which you get with soil$soil_vwc." else ""`
+},
+{
+  title: "6. Break it on purpose",
+  body: `<p>Every R user sees error messages all day. The real skill is reading them.
+    R stops at the first line that fails, so fix one line, run again, and see what
+    the next line says.</p>
+    <p>One more thing: if there's a typo anywhere (like a missing comma), R can't
+    read the box at all and nothing runs. Fix that first.</p>`,
+  task: `<strong>Your task:</strong> Each line below has one problem. Run, read R's
+    message, fix, repeat. When all four run cleanly, save the average fungal
+    biomass as <code>fungi_avg</code>, and make sure it isn't <code>NA</code>.`,
+  starter: `Mean(soil$pH)\nmean(soil$ph)\nc(1, 2 3)\nmean(soil$fungi_ugC)\n`,
+  check: `if (!exists("fungi_avg")) "Not yet. Once the broken lines run, save the average fungal biomass as fungi_avg." else
+    if (!is.numeric(fungi_avg)) "fungi_avg should be a number." else
+    if (is.na(fungi_avg)) "fungi_avg is NA because one sample is missing its fungal value. Add na.rm = TRUE inside mean() to skip missing values." else
+    if (!isTRUE(all.equal(fungi_avg, mean(soil$fungi_ugC, na.rm = TRUE)))) "Close. Take the mean of soil$fungi_ugC, skipping missing values." else ""`
+},
+{
+  title: "7. Your turn",
+  body: `<p>You now know the pieces behind the Soil Explorer. Its first line was:</p>
+    <p><code>my_data &lt;- subset(soil, site %in% c("GC", "FF"))</code></p>
+    <p>Read it the way R does: <code>c()</code> makes a vector of site names,
+    <code>subset()</code> keeps the rows of <code>soil</code> whose site is in that
+    vector, and <code>&lt;-</code> saves the result as <code>my_data</code>.</p>
+    <p>Ideas to try: <code>table(soil$site)</code>,
+    <code>subset(soil, site == "FF")</code>, <code>summary(soil)</code>,
+    <code>max(soil$temperature_c) - min(soil$temperature_c)</code>,
+    <code>t.test(pH ~ site, data = soil)</code>.</p>`,
+  task: `<strong>No checks here.</strong> Play. If R complains, read what it says.`,
+  starter: `gc_only <- subset(soil, site == "GC")\nnrow(gc_only)\nmean(gc_only$pH)\n`,
+  check: null
+}
+];
+
+// ---------------------------------------------------------------------
+// Plain-language translations of common R messages
+// ---------------------------------------------------------------------
+function decode(text, status) {
+  const rules = [
+    [/could not find function "([^"]+)"/, m => `R doesn't know a function called <code>${m[1]}</code>. Check the spelling and capital letters (it's <code>mean</code>, not <code>Mean</code>).`],
+    [/object '([^']+)' not found/, m => `Nothing called <code>${m[1]}</code> is in R's memory. Check the spelling and capitals against R's memory panel, or run the line that creates it first.`],
+    [/unexpected end of input|INCOMPLETE/, () => `Something was opened but never closed. Count your <code>(</code> and <code>)</code>, and check that every quote has a partner.`],
+    [/unexpected (numeric constant|symbol|string constant)/, () => `R hit something it didn't expect. Usually a comma is missing between two values, like <code>c(1, 2 3)</code>.`],
+    [/unexpected '([^']+)'/, m => `R didn't expect a <code>${m[1]}</code> there. Look for an extra or missing bracket or comma just before it.`],
+    [/non-numeric argument to binary operator/, () => `You tried to do math on text. Values in quotes are text, not numbers.`],
+    [/argument is not numeric or logical: returning NA/, () => `The thing you gave <code>mean()</code> isn't a set of numbers. If you used <code>$</code>, check the column name: a misspelled column comes back as <code>NULL</code> (nothing) instead of an error.`],
+  ];
+  for (const [re, say] of rules) {
+    const m = text.match(re);
+    if (m) return { kind: /Warning/.test(text) && status !== "ERR" ? "warn" : "err", html: say(m) };
+  }
+  if (status === "ERR") return { kind: "err", html: `Read R's message carefully. It usually points right at the problem line.` };
+  if (status === "NA") return { kind: "warn", html: `The answer is <code>NA</code> ("not available"), which happens when at least one value is missing. Add <code>na.rm = TRUE</code> (remove NAs) inside the function to skip missing values.` };
+  return null;
+}
+
+// ---------------------------------------------------------------------
+// Page wiring
+// ---------------------------------------------------------------------
+const $ = id => document.getElementById(id);
+const escapeHtml = s => s.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+const codeByLesson = LESSONS.map(l => l.starter);
+const done = LESSONS.map(() => false);
+let current = 0;
+let webR = null;
+
+function renderSteps() {
+  $("steps").innerHTML = "";
+  LESSONS.forEach((l, i) => {
+    const b = document.createElement("button");
+    b.textContent = l.title;
+    b.className = (i === current ? "on " : "") + (done[i] ? "done" : "");
+    b.onclick = () => show(i);
+    $("steps").appendChild(b);
+  });
+}
+
+function show(i) {
+  codeByLesson[current] = $("code").value;
+  current = i;
+  const l = LESSONS[i];
+  $("title").textContent = l.title;
+  $("body").innerHTML = l.body;
+  $("task").innerHTML = l.task;
+  $("code").value = codeByLesson[i];
+  $("console").innerHTML = `<span class="muted">Your output will appear here.</span>`;
+  $("decode").innerHTML = "";
+  $("check").innerHTML = done[i]
+    ? `<div class="check pass">✓ You finished this one. Keep experimenting if you like.</div>` : "";
+  renderSteps();
+}
+
+async function refreshMemory() {
+  $("memory").innerHTML = await webR.evalRString(".memory()");
+}
+
+async function run() {
+  if (!webR) return;
+  $("run").disabled = true;
+  try {
+    await webR.objs.globalEnv.bind(".code", $("code").value);
+    const res = await webR.evalRString(".run(.code)");
+    const nl = res.indexOf("\n");
+    const status = nl < 0 ? res : res.slice(0, nl);
+    const text = nl < 0 ? "" : res.slice(nl + 1);
+    $("console").innerHTML = text ? escapeHtml(text) : `<span class="muted">(nothing to run)</span>`;
+
+    const d = decode(text, status);
+    $("decode").innerHTML = d ? `<div class="decode ${d.kind}"><strong>In plain English:</strong> ${d.html}</div>` : "";
+
+    const l = LESSONS[current];
+    if (l.check) {
+      const hint = await webR.evalRString(`tryCatch({ ${l.check} }, error = function(e) "Keep going.")`);
+      if (!hint) {
+        done[current] = true;
+        const next = current + 1 < LESSONS.length
+          ? ` <button class="btn" id="next">Next lesson →</button>` : "";
+        $("check").innerHTML = `<div class="check pass">✓ Nice work, that's it.${next}</div>`;
+        if (next) $("next").onclick = () => show(current + 1);
+        renderSteps();
+      } else if (!done[current]) {
+        $("check").innerHTML = `<div class="check todo">${escapeHtml(hint)}</div>`;
+      }
+    }
+    await refreshMemory();
+  } catch (e) {
+    $("console").textContent = "Something went wrong running R in the browser: " + e.message;
+  } finally {
+    $("run").disabled = false;
+  }
+}
+
+$("run").onclick = run;
+$("code").addEventListener("keydown", e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); run(); }
+  if (e.key === "Tab") {                     // Tab inserts spaces instead of leaving the box
+    e.preventDefault();
+    const t = e.target, s = t.selectionStart;
+    t.setRangeText("  ", s, t.selectionEnd, "end");
+  }
+});
+$("restore").onclick = () => { $("code").value = LESSONS[current].starter; $("code").focus(); };
+$("reset").onclick = async () => {
+  if (!confirm("Empty R's memory? Everything you saved will be gone (the soil data comes back).")) return;
+  await webR.evalRVoid(".reset()");
+  await refreshMemory();
+};
+
+show(0);
+
+try {
+  webR = new WebR();
+  await webR.init();
+  await webR.evalRVoid($("r-setup").textContent);
+  await refreshMemory();
+  $("run").disabled = false;
+  $("reset").disabled = false;
+  $("status").textContent = "R is ready.";
+  $("status").className = "ready";
+} catch (e) {
+  $("status").textContent = "R couldn't start in this browser (" + e.message +
+    "). Try a current Chrome, Firefox, Edge or Safari, and make sure the page is opened from a web address, not a file on your computer.";
+}
+</script>
+</body>
+</html>
