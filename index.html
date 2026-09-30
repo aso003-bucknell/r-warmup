@@ -385,8 +385,10 @@ function renderSteps() {
   });
 }
 
+let started = false;
 function show(i) {
-  codeByLesson[current] = $("code").value;
+  if (started) codeByLesson[current] = $("code").value;  // keep what they typed
+  started = true;
   current = i;
   const l = LESSONS[i];
   $("title").textContent = l.title;
